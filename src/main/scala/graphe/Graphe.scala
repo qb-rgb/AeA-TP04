@@ -29,7 +29,7 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertex noeud dont on souhaite récupérer les arêtes
    * @return arêtes du graphe reliées au sommet vertex
    */
-  def getEdgesFromVertex(vertex: Vertex[T]): Set[Edge[T]] =
+  def getVertexEdges(vertex: Vertex[T]): Set[Edge[T]] =
     this.edges filter (e => (e.v1 == vertex) || (e.v2 == vertex))
 
   /**
@@ -38,7 +38,7 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertexId identifiant du noeud dont on souhaite récupérer les arêtes
    * @return arêtes du graphe reliées au sommet d'identifiant vertexId
    */
-  def getEdgesFromVertexId(vertexId: T): Set[Edge[T]] =
+  def getVertexEdges(vertexId: T): Set[Edge[T]] =
     this getEdgesFromVertex this.vertexesId(vertexId)
 
   /**
