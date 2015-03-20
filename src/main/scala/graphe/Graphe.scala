@@ -13,6 +13,9 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
   // ATTRIBUTS //
   ///////////////
 
+  /**
+   * Permet d'accéder aux noeuds du graphe par leur identifiant
+   */
   val vertexesId: Map[T, Vertex[T]] =
     (this.vertexes map (x => x.id -> x)).toMap
 
@@ -20,9 +23,21 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
   // MÉTHODES //
   //////////////
 
+  /**
+   * Retourne un nouveau graphe avec un noeud supplémentaire
+   *
+   * @param vertex noeud à ajouter au graphe
+   * @return nouveau graphe avec un noeud supplémentaire
+   */
   def addVertex(vertex: Vertex[T]): Graphe[T] =
     new Graphe[T](this.vertexes + vertex, this.edges)
 
+  /**
+   * Retourne un nouveau graphe avec une arête supplémentaire
+   *
+   * @param edge arête à ajouter au graphe
+   * @return nouveau graphe avec une arête supplémentaire
+   */
   def addEdge(edge: Edge[T]): Graphe[T] =
     if ((this.vertexes contains edge.v1) &&
         (this.vertexes contains edge.v2))
@@ -30,10 +45,22 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     else
       throw new Error("Graphe.addEdge : Impossible d'ajouter l'arête")
 
+  /**
+   * Donne toutes les arêtes du graphe reliées à un sommet donné
+   *
+   * @param vertex noeud dont on souhaite récupérer les arêtes
+   * @return arêtes du graphe reliées au sommet vertex
+   */
   def getEdgesFromVertex(vertex: Vertex[T]): Set[Edge[T]] =
     this.edges filter (e => (e.v1 == vertex) || (e.v2 == vertex))
 
-  def getEdgesFromVertexId(id: T): Set[Edge[T]] =
-    this getEdgesFromVertex this.vertexesId(id)
+  /**
+   * Donne toutes les arêtes du graphe reliées à un sommet donné
+   *
+   * @param vertexId identifiant du noeud dont on souhaite récupérer les arêtes
+   * @return arêtes du graphe reliées au sommet d'identifiant vertexId
+   */
+  def getEdgesFromVertexId(vertexId: T): Set[Edge[T]] =
+    this getEdgesFromVertex this.vertexesId(vertexId)
 
 }
