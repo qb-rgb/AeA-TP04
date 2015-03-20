@@ -13,8 +13,7 @@ object Main {
       Edge(vertexesId('C'), vertexesId('D'), 9),
       Edge(vertexesId('E'), vertexesId('F'), 15),
       Edge(vertexesId('F'), vertexesId('G'), 10),
-      Edge(vertexesId('G'), vertexesId('H'), 3),
-      Edge(vertexesId('H'), vertexesId('G'), 3)
+      Edge(vertexesId('G'), vertexesId('H'), 3)
     )
 
     val graphe = new Graphe(vertexes, edges)
