@@ -87,4 +87,7 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     this addEdge edge
   }
 
+  override def toString: String =
+    this.edges mkString "\n"
+
 }
