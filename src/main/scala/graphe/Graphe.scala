@@ -63,4 +63,28 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     else
       throw new Error("Graphe.addEdge : Impossible d'ajouter l'arête")
 
+  /**
+   * Retourne un nouveau graphe avec une arête supplémentaire
+   *
+   * @param v1 première extrémitée de l'arête
+   * @param v2 seconde extrémitée de l'arête
+   * @param weight poids de l'arête
+   * @return nouveau graphe avec une arête supplémentaire
+   */
+  def addEdgeBetween(v1: Vertex[T], v2: Vertex[T], weight: Int): Graphe[T] =
+    this addEdge (new Edge(v1, v2, weight))
+
+  /**
+   * Retourne un nouveau graphe avec une arête supplémentaire
+   *
+   * @param v1 première extrémitée de l'arête
+   * @param v2 seconde extrémitée de l'arête
+   * @param weight poids de l'arête
+   * @return nouveau graphe avec une arête supplémentaire
+   */
+  def addEdgeBetween(v1Id: T, v2Id: T, weight: Int): Graphe[T] = {
+    val edge = new Edge(this.vertexesId(v1Id), this.vertexesId(v2Id), weight)
+    this addEdge edge
+  }
+
 }
