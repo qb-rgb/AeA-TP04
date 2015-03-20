@@ -13,18 +13,27 @@ case class Edge[T](
   val v2: Vertex[T],
   val weight: Int) {
 
+  override def toString: String =
+    this.v1.toString + " -> " + this.v2.toString + " (" + this.weight + ")"
+
   override def equals(other: Any): Boolean = other match {
-    case that: Edge[_] => (that canEqual this) &&
-                          this.v1 == that.v1 &&
-                          this.v2 == that.v2 &&
-                          this.weight == that.weight
+    case that: Edge[_] => {
+      val bool = (that canEqual this) && (this.weight == that.weight)
+
+      if (this.v1 == that.v1)
+        bool && (this.v2 == that.v2)
+      else if (this.v1 == that.v2)
+        bool && (this.v2 == that.v1)
+      else
+        false
+    }
     case _ => false
   }
 
   def canEqual(other: Any) = other.isInstanceOf[Edge[_]]
 
   override def hashCode: Int =
-    41 * (41 * (41 + weight) + v1.hashCode ) + v2.hashCode
+    (41 * (41 + weight)) + v1.hashCode + v2.hashCode
 
 }
 
