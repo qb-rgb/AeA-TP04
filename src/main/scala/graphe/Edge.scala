@@ -13,6 +13,9 @@ case class Edge[T](
   val v2: Vertex[T],
   val weight: Int) {
 
+  // Les deux extrémités d'une arête doivent être différentes
+  assert(v1 != v2)
+
   override def toString: String =
     this.v1.toString + " -> " + this.v2.toString + " (" + this.weight + ")"
 
