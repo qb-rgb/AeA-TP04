@@ -87,6 +87,42 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     this addEdge edge
   }
 
+  /**
+   * Donne l'arbre couvrant minimum du graphe grâce à l'algorithme de Prim
+   *
+   * @return arbre couvrant minimum du graphe
+   */
+  def getPrimMST: Graphe[T] = {
+    /*
+     * v  : Ensemble des points marqués
+     * e  : Ensemble des arêtes sortante de l'ensemble de points marqués
+     * fr : Ensemble des arêtes à garder pour l'arbre couvrant minimum
+     */
+    def prim(v: Set[Vertex[T]], e: Set[Edge[T]], fe: Set[Edge[T]]): Graphe[T] =
+      if (this.vertexes forall (v contains _))
+        new Graphe(v, fe)
+      else {
+        // Arête avec le poids minimum
+        val minEdge = e minBy (x => x.weight)
+        // Extrémité de l'arête qui est déjà marqué
+        val taggedVertex = if (v contains minEdge.v1) minEdge.v1 else minEdge.v2
+        // Sommet à ajouter aux sommets marqués
+        val vertex = minEdge other taggedVertex
+        // Arêtes à ajouter à e
+        val edgesToAdd =
+          (this getVertexEdges vertex) filterNot (e => v contains (e other vertex))
+        // Nouvel ensemble d'arêtes à considérer
+        val newE = (e - minEdge) ++ edgesToAdd
+
+        prim(v + vertex, newE, fe + minEdge)
+      }
+
+    val vertex = this.vertexes.head
+    val vertexEdges = this getVertexEdges vertex
+
+    prim(Set(vertex), vertexEdges, Set())
+  }
+
   override def toString: String =
     this.edges mkString "\n"
 
