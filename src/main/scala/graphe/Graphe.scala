@@ -39,7 +39,7 @@ class Graphe[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return arêtes du graphe reliées au sommet d'identifiant vertexId
    */
   def getVertexEdges(vertexId: T): Set[Edge[T]] =
-    this getEdgesFromVertex this.vertexesId(vertexId)
+    this getVertexEdges this.vertexesId(vertexId)
 
   /**
    * Retourne un nouveau graphe avec un noeud supplémentaire
