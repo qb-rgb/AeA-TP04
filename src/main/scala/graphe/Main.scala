@@ -19,6 +19,10 @@ object Main {
     val graphe = new Graphe(vertexes, edges)
 
     println(graphe.toString)
+
+    println("\n----- MST -----\n")
+
+    println(graphe.getPrimMST)
   }
 
 }
