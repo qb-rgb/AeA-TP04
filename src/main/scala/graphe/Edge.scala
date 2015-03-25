@@ -16,6 +16,22 @@ case class Edge[T](
   // Les deux extrémités d'une arête doivent être différentes
   assert(v1 != v2)
 
+  /**
+   * Donne une extrémité de l'arête à partir de l'autre extrémité
+   *
+   * @param v une des extrémité de l'arête
+   * @return autre extrémité de l'arête
+   */
+  def other(v: Vertex[T]): Vertex[T] =
+    if (v == this.v1)
+      this.v2
+    else if (v == this.v2)
+      this.v1
+    else
+      throw new Error(
+        "Edge.other : le sommet " + v + " n'appartient pas à l'arête " + this
+      )
+
   override def toString: String =
     this.v1.toString + " -> " + this.v2.toString + " (" + this.weight + ")"
 
