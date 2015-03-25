@@ -33,7 +33,7 @@ case class Edge[T](
       )
 
   override def toString: String =
-    this.v1.toString + " -> " + this.v2.toString + " (" + this.weight + ")"
+    this.v1.toString + " -- " + this.v2.toString + " (" + this.weight + ")"
 
   override def equals(other: Any): Boolean = other match {
     case that: Edge[_] => {
