@@ -16,7 +16,7 @@ object Main {
       Edge(vertexesId('G'), vertexesId('H'), 3)
     )
 
-    val graphe = new Graphe(vertexes, edges)
+    val graphe = new Graph(vertexes, edges)
 
     println(graphe.toString)
 
