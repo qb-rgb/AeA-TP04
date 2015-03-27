@@ -42,6 +42,15 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     this getVertexEdges this.vertexesId(vertexId)
 
   /**
+   * Donne les succésseurs d'un sommet du graphe
+   *
+   * @param vertex sommet dont on souhaite récupérer les succésseurs
+   * @return ensemble des succéseurs de vertex
+   */
+  def getVertexSuccessors(vertex: Vertex[T]): Set[Vertex[T]] =
+    (this getVertexEdges vertex) map (e => e other vertex)
+
+  /**
    * Retourne un nouveau graphe avec un noeud supplémentaire
    *
    * @param vertex noeud à ajouter au graphe
