@@ -47,7 +47,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertex sommet dont on souhaite récupérer les succésseurs
    * @return ensemble des succéseurs de vertex
    */
-  def getVertexSuccessors(vertex: Vertex[T]): Set[Vertex[T]] =
+  def getVertexNeighbours(vertex: Vertex[T]): Set[Vertex[T]] =
     (this getVertexEdges vertex) map (e => e other vertex)
 
   /**
