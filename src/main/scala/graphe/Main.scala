@@ -19,10 +19,13 @@ object Main {
     val graphe = new Graph(vertexes, edges)
 
     println(graphe.toString)
+    println(graphe.containsCycle)
 
     println("\n----- MST -----\n")
 
-    println(graphe.getPrimMST)
+    val mst = graphe.getPrimMST
+    println(mst)
+    println(mst.containsCycle)
   }
 
 }
