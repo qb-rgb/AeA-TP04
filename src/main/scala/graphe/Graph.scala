@@ -112,6 +112,23 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
   }
 
   /**
+   * Détermine si le graphe contient un cycle
+   *
+   * @return true si le graphe contient un cycle, false sinon
+   */
+  def containsCycle: Boolean = {
+    def testWithAllVertexes(vertexes: Set[Vertex[T]]): Boolean =
+      if (vertexes.isEmpty)
+        false
+      else if (this containsCycleFrom vertexes.head)
+        true
+      else
+        testWithAllVertexes(vertexes.tail)
+
+    testWithAllVertexes(this.vertexes)
+  }
+
+  /**
    * Retourne un nouveau graphe avec un noeud supplémentaire
    *
    * @param vertex noeud à ajouter au graphe
