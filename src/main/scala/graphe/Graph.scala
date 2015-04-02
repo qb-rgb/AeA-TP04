@@ -180,6 +180,9 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return arbre couvrant minimum du graphe
    */
   def getPrimMST: Graph[T] = {
+    // L'algorithme ainsi codé nécéssite que le graphe soit connexe
+    require(this.isConnex)
+
     /*
      * v  : Ensemble des points marqués
      * e  : Ensemble des arêtes sortante de l'ensemble de points marqués
