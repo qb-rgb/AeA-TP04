@@ -2,12 +2,12 @@
  * Représente un graphe valué
  *
  * @constructor construit un nouveau graphe valué
- * @param vertexes noeuds du graphe
+ * @param vertices noeuds du graphe
  * @param edges arêtes du graphe
  *
  * @author Quentin Baert
  */
-class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
+class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
 
   ///////////////
   // ATTRIBUTS //
@@ -16,8 +16,8 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
   /**
    * Permet d'accéder aux noeuds du graphe par leur identifiant
    */
-  val vertexesId: Map[T, Vertex[T]] =
-    (this.vertexes map (x => x.id -> x)).toMap
+  val verticesId: Map[T, Vertex[T]] =
+    (this.vertices map (x => x.id -> x)).toMap
 
   //////////////
   // MÉTHODES //
@@ -39,7 +39,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return arêtes du graphe reliées au sommet d'identifiant vertexId
    */
   def getVertexEdges(vertexId: T): Set[Edge[T]] =
-    this getVertexEdges this.vertexesId(vertexId)
+    this getVertexEdges this.verticesId(vertexId)
 
   /**
    * Donne les succésseurs d'un sommet du graphe
@@ -117,15 +117,15 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return true si le graphe contient un cycle, false sinon
    */
   def containsCycle: Boolean = {
-    def testWithAllVertexes(vertexes: Set[Vertex[T]]): Boolean =
-      if (vertexes.isEmpty)
+    def testWithAllVertices(vertices: Set[Vertex[T]]): Boolean =
+      if (vertices.isEmpty)
         false
-      else if (this containsCycleFrom vertexes.head)
+      else if (this containsCycleFrom vertices.head)
         true
       else
-        testWithAllVertexes(vertexes.tail)
+        testWithAllVertices(vertices.tail)
 
-    testWithAllVertexes(this.vertexes)
+    testWithAllVertices(this.vertices)
   }
 
   /**
@@ -135,7 +135,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return nouveau graphe avec un noeud supplémentaire
    */
   def addVertex(vertex: Vertex[T]): Graph[T] =
-    new Graph[T](this.vertexes + vertex, this.edges)
+    new Graph[T](this.vertices + vertex, this.edges)
 
   /**
    * Retourne un nouveau graphe avec une arête supplémentaire
@@ -144,9 +144,9 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return nouveau graphe avec une arête supplémentaire
    */
   def addEdge(edge: Edge[T]): Graph[T] =
-    if ((this.vertexes contains edge.v1) &&
-        (this.vertexes contains edge.v2))
-      new Graph[T](this.vertexes, this.edges + edge)
+    if ((this.vertices contains edge.v1) &&
+        (this.vertices contains edge.v2))
+      new Graph[T](this.vertices, this.edges + edge)
     else
       throw new Error("Graph.addEdge : Impossible d'ajouter l'arête")
 
@@ -170,7 +170,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @return nouveau graphe avec une arête supplémentaire
    */
   def addEdgeBetween(v1Id: T, v2Id: T, weight: Int): Graph[T] = {
-    val edge = new Edge(this.vertexesId(v1Id), this.vertexesId(v2Id), weight)
+    val edge = new Edge(this.verticesId(v1Id), this.verticesId(v2Id), weight)
     this addEdge edge
   }
 
@@ -186,7 +186,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
      * fr : Ensemble des arêtes à garder pour l'arbre couvrant minimum
      */
     def prim(v: Set[Vertex[T]], e: Set[Edge[T]], fe: Set[Edge[T]]): Graph[T] =
-      if (this.vertexes forall (v contains _))
+      if (this.vertices forall (v contains _))
         new Graph(v, fe)
       else {
         // Arête avec le poids minimum
@@ -204,7 +204,7 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
         prim(v + vertex, newE, fe + minEdge)
       }
 
-    val vertex = this.vertexes.head
+    val vertex = this.vertices.head
     val vertexEdges = this getVertexEdges vertex
 
     prim(Set(vertex), vertexEdges, Set())
