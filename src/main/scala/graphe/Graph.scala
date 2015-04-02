@@ -51,6 +51,67 @@ class Graph[T](val vertexes: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     (this getVertexEdges vertex) map (e => e other vertex)
 
   /**
+   * Détermine si le graphe contient un cycle en partant d'un sommet donné ou non
+   *
+   * @param vertex sommet à partir duquel trouver un cycle
+   * @return true si le graphe contient cycle en partant de vertex, false sinon
+   */
+  def containsCycleFrom(vertex: Vertex[T]): Boolean = {
+    /*
+     * toCheck : ensemble de sommets qu'il reste à parcourir
+     * tagged  : ensemble de sommets déjà marqués
+     * father  : map donnant le sommet père d'un autre sommet (dans le parcours)
+     */
+    def detectCycleFrom(
+      toCheck: List[Vertex[T]],
+      tagged: Set[Vertex[T]],
+      father: Map[Vertex[T], Vertex[T]]): Boolean = {
+
+      // Si tous les sommets ont été parcourus : pas de cycle
+      if (toCheck.isEmpty)
+        false
+      else {
+        // Sommet à traiter
+        val vertex = toCheck.head
+
+        // Si ce sommet est déjà marqué : cycle détecté
+        if (tagged contains vertex)
+          true
+        else {
+          val neighbours = this getVertexNeighbours vertex
+          // Voisins du sommet courrant
+          val finalNeighbours =
+            // Le père du sommet courant n'est pas pris en compte
+            if (father contains vertex)
+              neighbours - father(vertex)
+            else
+              neighbours
+
+          // Si un des voisins du sommet courant est déjà à traiter : cycle détecté
+          if (finalNeighbours exists (v => toCheck contains v))
+            true
+          else
+            /*
+             * Appel récursif avec :
+             *    les voisins du sommets courant ajoutés aux sommets à traiter
+             *    le sommet courant ajouté aux sommets marqués
+             *    la table des père mise à jour
+             */
+            detectCycleFrom(
+              finalNeighbours.toList ++ toCheck.tail,
+              tagged + vertex,
+              father ++ (finalNeighbours map (v => v -> vertex))
+            )
+        }
+      }
+    }
+
+    val initialFather = ((this getVertexNeighbours vertex) map (v => (v -> vertex))).toMap
+
+    detectCycleFrom(List(vertex), Set(), initialFather)
+  }
+
+  /**
    * Retourne un nouveau graphe avec un noeud supplémentaire
    *
    * @param vertex noeud à ajouter au graphe
