@@ -210,6 +210,35 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     prim(Set(vertex), vertexEdges, Set())
   }
 
+  /**
+   * Donne l'arbre couvrant minimum du graphe grâce à l'algorithme de Kruskal
+   *
+   * @return arbre couvrant minimum du graphe
+   */
+  def getKruskalMST: Graph[T] = {
+    /*
+     * mst         : arbre couvrant minimum en cours de construction
+     * unusedEdges : arête a potentiellement ajouter à l'arbre couvrant
+     */
+    def kruskal(mst: Graph[T], unusedEdges: List[Edge[T]]): Graph[T] =
+      if (unusedEdges.isEmpty)
+        mst
+      else {
+        val newMST = mst addEdge unusedEdges.head
+
+        if (newMST.containsCycle)
+          kruskal(mst, unusedEdges.tail)
+        else
+          kruskal(newMST, unusedEdges.tail)
+      }
+
+    val initMST = new Graph(this.vertices, Set[Edge[T]]())
+    val initUnusedEdges =
+      this.edges.toList sortWith ((e1, e2) => e1.weight < e2.weight)
+
+    kruskal(initMST, initUnusedEdges)
+  }
+
   override def toString: String =
     this.edges mkString "\n"
 
