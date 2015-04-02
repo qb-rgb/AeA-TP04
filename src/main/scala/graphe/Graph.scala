@@ -128,6 +128,9 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     testWithAllVertices(this.vertices)
   }
 
+  def isConnex: Boolean =
+    !(this.vertices exists (v => (this getVertexEdges v).isEmpty))
+
   /**
    * Retourne un nouveau graphe avec un noeud supplémentaire
    *
