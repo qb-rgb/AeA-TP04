@@ -21,11 +21,17 @@ object Main {
     println(graphe.toString)
     println(graphe.containsCycle)
 
-    println("\n----- MST -----\n")
+    println("\n----- PRIM MST -----\n")
 
-    val mst = graphe.getPrimMST
-    println(mst)
-    println(mst.containsCycle)
+    val prim = graphe.getPrimMST
+    println(prim)
+    println(prim.containsCycle)
+
+    println("\n----- KRUSKAL MST -----\n")
+
+    val kruskal = graphe.getKruskalMST
+    println(kruskal)
+    println(kruskal.containsCycle)
   }
 
 }
