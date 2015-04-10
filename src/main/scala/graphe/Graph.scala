@@ -228,26 +228,44 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    */
   def getKruskalMST: Graph[T] = {
     /*
-     * mst         : arbre couvrant minimum en cours de construction
-     * unusedEdges : arête a potentiellement ajouter à l'arbre couvrant
+     * sets        : Ensemble des sommets du graphe, chacun associé à un identifiant
+     * edges       : arête à ajouter à l'arbre couvrant
+     * unusedEdges : arête à potentiellement ajouter à l'arbre couvrant
      */
-    def kruskal(mst: Graph[T], unusedEdges: List[Edge[T]]): Graph[T] =
+    def kruskal(sets: List[(Vertex[T], Int)], edges: Set[Edge[T]], unusedEdges: List[Edge[T]]): Graph[T] =
+      // Si toutes les arêtes ont été parcourues, le graphe peut être renvoyé
       if (unusedEdges.isEmpty)
-        mst
+        new Graph(this.vertices, edges)
       else {
-        val newMST = mst addEdge unusedEdges.head
+        // Fonction qui trouve l'identifiant d'un sommet
+        def findSetOf(v: Vertex[T]): Int = (sets filter (c => c._1 == v)).head._2
+        // Arête à considérer pour cette itération
+        val edge = unusedEdges.head
+        // Extrémités de l'arête à considérer
+        val (v1, v2) = (edge.v1, edge.v2)
+        // Identifiants des extrémités
+        val (i1, i2) = (findSetOf(v1), findSetOf(v2))
 
-        if (newMST.containsCycle)
-          kruskal(mst, unusedEdges.tail)
+        // Si les identifiants sont différents, on peut ajouter l'arête (pas de cycle)
+        if (i1 != i2) {
+          /*
+           * Les identifiants sont mis à jours :
+           * Tous les sommets qui avaient l'identifiant i2 ont maintenant
+           * l'identifiant i1
+           */
+          val newSets = sets map (c => if (c._2 == i2) (c._1, i1) else c)
+          kruskal(newSets, edges + edge, unusedEdges.tail)
+        }
+        // Sinon, ajouter l'arête créerait un cycle, elle n'est pas ajoutée
         else
-          kruskal(newMST, unusedEdges.tail)
+          kruskal(sets, edges, unusedEdges.tail)
       }
 
-    val initMST = new Graph(this.vertices, Set[Edge[T]]())
-    val initUnusedEdges =
-      this.edges.toList sortWith ((e1, e2) => e1.weight < e2.weight)
+    // Chaque sommet possède son propre identifiant
+    val initSets = (this.vertices zip (1 to this.vertices.size)).toList
+    val orderedEdges = this.edges.toList sortWith ((e1, e2) => e1.weight < e2.weight)
 
-    kruskal(initMST, initUnusedEdges)
+    kruskal(initSets, Set(), orderedEdges)
   }
 
   override def toString: String =
