@@ -53,4 +53,13 @@ object GraphBuilder {
   def buildIntGraph(path: String): Graph[Int] =
     this.buildTGraph(path, (s => s.toInt))
 
+  /**
+   * Construit un graphe de type String à partir d'un fichier
+   *
+   * @param path chemin vers le fichier
+   * @return graphe généré à partir du fichier
+   */
+  def buildStringGraph(path: String): Graph[String] =
+    this.buildTGraph(path, (s => s))
+
 }
