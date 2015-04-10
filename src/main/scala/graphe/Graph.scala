@@ -104,6 +104,13 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     this addEdge edge
   }
 
+  override def toString: String =
+    this.edges mkString "\n"
+
+  /////////
+  // MST //
+  /////////
+
   /**
    * Donne l'arbre couvrant minimum du graphe grâce à l'algorithme de Prim
    *
@@ -189,8 +196,5 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
 
     kruskal(initSets, Set(), orderedEdges)
   }
-
-  override def toString: String =
-    this.edges mkString "\n"
 
 }
