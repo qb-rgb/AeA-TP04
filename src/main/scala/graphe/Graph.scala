@@ -128,6 +128,11 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
     testWithAllVertices(this.vertices)
   }
 
+  /**
+   * Détermine si le graphe est un graphe connexe ou non
+   *
+   * @return true si le graphe est connexe, false sinon
+   */
   def isConnex: Boolean =
     !(this.vertices exists (v => (this getVertexEdges v).isEmpty))
 
