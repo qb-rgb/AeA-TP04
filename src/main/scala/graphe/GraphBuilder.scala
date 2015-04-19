@@ -6,19 +6,19 @@ import java.util.regex.Matcher
 object GraphBuilder {
 
   // Construit une liste d'arêtes depuis une ligne du fichier servant à générer le graphe
-  private def listOfEdgesFromLine[T](line: String, transform: String => T): Set[Edge[T]] = {
-    def findCouples(matcher: Matcher, index: Int, res: List[(T, Int)]): List[(T, Int)] =
+  private def listOfEdgesFromLine(line: String): Set[Edge] = {
+    def findCouples(matcher: Matcher, index: Int, res: List[(String, Int)]): List[(String, Int)] =
       if (matcher.find) {
         val stringCouple = matcher group 1
         val couple = stringCouple split " "
-        findCouples(matcher, index + 1, (transform(couple(0)), couple(1).toInt) :: res)
+        findCouples(matcher, index + 1, (couple(0), couple(1).toInt) :: res)
       } else res
 
     val splitPattern = Pattern compile "([\\d\\w]+)\\s+([[\\d\\w]+\\s+\\d+\\s*]+)"
     val splitMatcher = splitPattern matcher line
 
     if (splitMatcher.matches) {
-      val vertex = Vertex(transform(splitMatcher group 1))
+      val vertex = Vertex(splitMatcher group 1)
       val vertexesAndWeight = splitMatcher group 2
 
       val vAndWPattern = Pattern compile "([\\d\\w]+\\s+\\d+)"
@@ -32,26 +32,16 @@ object GraphBuilder {
   }
 
   // Construit un graphe de n'importe quel type
-  private def buildTGraph[T](path: String, transform: String => T): Graph[T] = {
+  private def buildTGraph(path: String): Graph = {
     // Récupération du fichier sous forme de chaine de caractèresj
     val text = (Source fromFile path).mkString
     // Liste de lignes
     val lines = (text split "\n").toList
-    val edges = lines flatMap (l => this.listOfEdgesFromLine(l, transform))
-    val vertices = edges.foldLeft(Set[Vertex[T]]())((a, e) => a + e.v1 + e.v2)
+    val edges = lines flatMap (l => this listOfEdgesFromLine l)
+    val vertices = edges.foldLeft(Set[Vertex]())((a, e) => a + e.v1 + e.v2)
 
     new Graph(vertices, edges.toSet)
   }
-
-  /**
-   * Construit un graphe de type Int à partir d'un fichier
-   * Les identifiants des sommets doivent donc représenter des entiers
-   *
-   * @param path chemin vers le fichier
-   * @return graphe généré à partir du fichier
-   */
-  def buildIntGraph(path: String): Graph[Int] =
-    this.buildTGraph(path, (s => s.toInt))
 
   /**
    * Construit un graphe de type String à partir d'un fichier
@@ -59,7 +49,7 @@ object GraphBuilder {
    * @param path chemin vers le fichier
    * @return graphe généré à partir du fichier
    */
-  def buildStringGraph(path: String): Graph[String] =
-    this.buildTGraph(path, (s => s))
+  def buildGraph(path: String): Graph =
+    this.buildTGraph(path)
 
 }

@@ -7,7 +7,7 @@
  *
  * @author Quentin Baert
  */
-class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
+class Graph(val vertices: Set[Vertex], val edges: Set[Edge]) {
 
   ///////////////
   // ATTRIBUTS //
@@ -16,7 +16,7 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
   /**
    * Permet d'accéder aux noeuds du graphe par leur identifiant
    */
-  val verticesId: Map[T, Vertex[T]] =
+  val verticesId: Map[String, Vertex] =
     (this.vertices map (x => x.id -> x)).toMap
 
   //////////////
@@ -29,17 +29,8 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertex noeud dont on souhaite récupérer les arêtes
    * @return arêtes du graphe reliées au sommet vertex
    */
-  def getVertexEdges(vertex: Vertex[T]): Set[Edge[T]] =
+  def getVertexEdges(vertex: Vertex): Set[Edge] =
     this.edges filter (e => (e.v1 == vertex) || (e.v2 == vertex))
-
-  /**
-   * Donne toutes les arêtes du graphe reliées à un sommet donné
-   *
-   * @param vertexId identifiant du noeud dont on souhaite récupérer les arêtes
-   * @return arêtes du graphe reliées au sommet d'identifiant vertexId
-   */
-  def getVertexEdges(vertexId: T): Set[Edge[T]] =
-    this getVertexEdges this.verticesId(vertexId)
 
   /**
    * Donne les succésseurs d'un sommet du graphe
@@ -47,7 +38,7 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertex sommet dont on souhaite récupérer les succésseurs
    * @return ensemble des succéseurs de vertex
    */
-  def getVertexNeighbours(vertex: Vertex[T]): Set[Vertex[T]] =
+  def getVertexNeighbours(vertex: Vertex): Set[Vertex] =
     (this getVertexEdges vertex) map (e => e other vertex)
 
   /**
@@ -64,8 +55,8 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param vertex noeud à ajouter au graphe
    * @return nouveau graphe avec un noeud supplémentaire
    */
-  def addVertex(vertex: Vertex[T]): Graph[T] =
-    new Graph[T](this.vertices + vertex, this.edges)
+  def addVertex(vertex: Vertex): Graph =
+    new Graph(this.vertices + vertex, this.edges)
 
   /**
    * Retourne un nouveau graphe avec une arête supplémentaire
@@ -73,10 +64,10 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param edge arête à ajouter au graphe
    * @return nouveau graphe avec une arête supplémentaire
    */
-  def addEdge(edge: Edge[T]): Graph[T] =
+  def addEdge(edge: Edge): Graph =
     if ((this.vertices contains edge.v1) &&
         (this.vertices contains edge.v2))
-      new Graph[T](this.vertices, this.edges + edge)
+      new Graph(this.vertices, this.edges + edge)
     else
       throw new Error("Graph.addEdge : Impossible d'ajouter l'arête")
 
@@ -88,21 +79,8 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    * @param weight poids de l'arête
    * @return nouveau graphe avec une arête supplémentaire
    */
-  def addEdgeBetween(v1: Vertex[T], v2: Vertex[T], weight: Int): Graph[T] =
+  def addEdgeBetween(v1: Vertex, v2: Vertex, weight: Int): Graph =
     this addEdge (new Edge(v1, v2, weight))
-
-  /**
-   * Retourne un nouveau graphe avec une arête supplémentaire
-   *
-   * @param v1 première extrémitée de l'arête
-   * @param v2 seconde extrémitée de l'arête
-   * @param weight poids de l'arête
-   * @return nouveau graphe avec une arête supplémentaire
-   */
-  def addEdgeBetween(v1Id: T, v2Id: T, weight: Int): Graph[T] = {
-    val edge = new Edge(this.verticesId(v1Id), this.verticesId(v2Id), weight)
-    this addEdge edge
-  }
 
   override def toString: String =
     this.edges mkString "\n"
@@ -116,7 +94,7 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    *
    * @return arbre couvrant minimum du graphe
    */
-  def getPrimMST: Graph[T] = {
+  def getPrimMST: Graph = {
     // L'algorithme ainsi codé nécéssite que le graphe soit connexe
     require(this.isConnex)
 
@@ -125,7 +103,7 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
      * e  : Ensemble des arêtes sortante de l'ensemble de points marqués
      * fr : Ensemble des arêtes à garder pour l'arbre couvrant minimum
      */
-    def prim(v: Set[Vertex[T]], e: Set[Edge[T]], fe: Set[Edge[T]]): Graph[T] =
+    def prim(v: Set[Vertex], e: Set[Edge], fe: Set[Edge]): Graph =
       if (this.vertices forall (v contains _))
         new Graph(v, fe)
       else {
@@ -155,19 +133,19 @@ class Graph[T](val vertices: Set[Vertex[T]], val edges: Set[Edge[T]]) {
    *
    * @return arbre couvrant minimum du graphe
    */
-  def getKruskalMST: Graph[T] = {
+  def getKruskalMST: Graph = {
     /*
      * sets        : Ensemble des sommets du graphe, chacun associé à un identifiant
      * edges       : arête à ajouter à l'arbre couvrant
      * unusedEdges : arête à potentiellement ajouter à l'arbre couvrant
      */
-    def kruskal(sets: List[(Vertex[T], Int)], edges: Set[Edge[T]], unusedEdges: List[Edge[T]]): Graph[T] =
+    def kruskal(sets: List[(Vertex, Int)], edges: Set[Edge], unusedEdges: List[Edge]): Graph =
       // Si toutes les arêtes ont été parcourues, le graphe peut être renvoyé
       if (unusedEdges.isEmpty)
         new Graph(this.vertices, edges)
       else {
         // Fonction qui trouve l'identifiant d'un sommet
-        def findSetOf(v: Vertex[T]): Int = (sets filter (c => c._1 == v)).head._2
+        def findSetOf(v: Vertex): Int = (sets filter (c => c._1 == v)).head._2
         // Arête à considérer pour cette itération
         val edge = unusedEdges.head
         // Extrémités de l'arête à considérer
