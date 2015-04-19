@@ -146,6 +146,7 @@ Le `jar` éxécutable `GraphMST.jar` permet d'imprimer un graphe et son MST sur 
 Pour tester, le fichier `graph.txt` correspond au graphe se trouvant à la fin du sujet de TP.
 
 Exemple d'utilisation :
+
 ```
 $ java -jar GraphMST.jar graph.txt
 
@@ -200,6 +201,7 @@ Le `jar` éxécutable `TestPerfMST.jar` permet de tester les deux algorithmes su
 Pour s'assurer du bon fonctionnement de l'algorithme de Prim, il est conseillé de demander des graphes composés d'au moins 100 sommets.
 
 Exemple d'utilisation pour 50 graphes de 100 sommets (pour chaque probabilité, 50 graphes à 100 arêtes sont générés) :
+
 ```
 $java -jar TestPerfMST.jar 50 100
 
@@ -237,6 +239,7 @@ Temps moyen : 7 ms
 On remarque de l'algorithme de Kruskal est toujours plus efficace. Cela est sûrement dû à l'optimisation apporté à l'implémentation pour la détéction des cycles : chaque sommet est dans un groupe lors de l'éxécution de l'algorithme, si une arête sélectionnée lie deux sommets du même groupe, un cycle est détecté.
 
 Test sur un graphe de taille 1000 :
+
 ```
 $java -jar TestPerfMST.jar 1 1000
 
