@@ -1,250 +1,274 @@
 Quentin Baert  
 
-# AeA : Le jeu de la lettre qui saute
+# AeA : Calcul d'arbres recouvrants de coû minimum
 
-Exercice 1 : Modélisation et initialisation du jeu
---------------------------------------------------
-
-La classe `Liste` se trouve dans le dossier `src/main/scala/liste`.  
-La classe `Graphe` se trouve dans le dossier `src/main/scala/graphe`.
-
-Voici le graphe correspondant au `dico3court` après initialisation de la liste de successeurs.
+Architecture
+------------
 
 ```
-===== Graphe =====
-
-gag -> gai
-gag -> gaz
-----
-gai -> gag
-gai -> gaz
-gai -> gui
-----
-gaz -> gag
-gaz -> gai
-----
-gnu -> glu
-----
-glu -> gnu
-glu -> alu
-----
-gui -> gai
-gui -> guy
-gui -> gue
-----
-guy -> gui
-guy -> gue
-----
-gre -> gue
-gre -> are
-----
-gue -> gui
-gue -> guy
-gue -> gre
-----
-ace -> acm
-ace -> aie
-ace -> are
-----
-acm -> ace
-----
-agi -> ami
-----
-ait -> aie
-ait -> ail
-ait -> air
-ait -> art
-----
-aie -> ace
-aie -> ait
-aie -> ail
-aie -> air
-aie -> are
-----
-ail -> ait
-ail -> aie
-ail -> air
-----
-air -> ait
-air -> aie
-air -> ail
-air -> apr
-air -> avr
-----
-alu -> glu
-----
-ami -> agi
-----
-arc -> are
-arc -> art
-----
-are -> gre
-are -> ace
-are -> aie
-are -> arc
-are -> art
-----
-art -> ait
-art -> arc
-art -> are
-----
-apr -> air
-apr -> avr
-----
-avr -> air
-avr -> apr
-----
-sur -> mur
-----
-mur -> sur
+src
+├── main
+│   ├── java
+│   ├── resources
+│   └── scala
+│       └── graphe
+│           ├── Edge.scala
+│           ├── Graph.scala
+│           ├── GraphBuilder.scala
+│           ├── GraphGenerator.scala
+│           ├── GraphMST.scala
+│           ├── TestPerfMST.scala
+│           └── Vertex.scala
 ```
 
-Exercice 2 : Calcul des composantes connexes
---------------------------------------------
+Avec :
 
-Pour obtenir la composante connexe d'un mot du graphe, il suffit de lancer un parcours à partir de ce mot.  
-Pour les composantes suivantes, la méthode `Graphe.dfsPrint(m)` est utilisée : celle ci effectue un parcours en profondeur depuis le mot `m`.
+* `Edge` : représente une arête d'un graphe
+* `Vertex` : représente un sommet d'un graphe
+* `Graph` : représente un graphe
+* `GraphBuilder` : permet de construire un graphe depuis un fichier texte
+* `GraphGenerator` : permet de générer un graphe aléatoire selon la méthode Erdos-Renyi
+* `GraphMST` : main qui génére un graphe depuis un fichier texte et affiche son MST
+* `TestPerfMST` : main qui permet de tester les performances des algorithmes implémentés sur plusieurs graphes générés aléatoirement
 
-#### Composantes connexes du graphe de `dico3court`
+Algorithmes implémentés
+-----------------------
 
-```
-0:  gag  gai  gaz  gui  guy  gue  gre  are  ace  acm  aie  ait  ail  air  apr  avr  art  arc
-1:  gel
-2:  gks
-3:  gin
-4:  gnu  glu  alu
-5:  agi  ami
-6:  and
-7:  sur  mur
-8:  mat
-```
+#### Algorithme de Prim
 
-#### Composante connexe des mots _lion_ et _peur_
+L'arbre couvrant minimum d'un graphe généré avec l'algorithme de Prim s'obtient grâce à la méthode `Graph.getPrimMST()`. Pour que cette méthode se comporte correctement, il faut que le graphe soit connexe.
 
 ```
-lion  lien  mien  miel  fiel  fier  fief  hier  huer  puer  ruer
+  /**
+   * Donne l'arbre couvrant minimum du graphe grâce à l'algorithme de Prim
+   *
+   * @return arbre couvrant minimum du graphe
+   */
+  def getPrimMST: Graph = {
+    // L'algorithme ainsi codé nécéssite que le graphe soit connexe
+    require(this.isConnex)
+
+    /*
+     * v  : Ensemble des points marqués
+     * e  : Ensemble des arêtes sortante de l'ensemble de points marqués
+     * fe : Ensemble des arêtes à garder pour l'arbre couvrant minimum
+     */
+    def prim(v: Set[Vertex], e: Set[Edge], fe: Set[Edge]): Graph =
+      if (this.vertices forall v.contains)
+        new Graph(v, fe)
+      else {
+        // Arête avec le poids minimum
+        val minEdge = e minBy (x => x.weight)
+        // Extrémité de l'arête qui est déjà marqué
+        val taggedVertex = if (v contains minEdge.v1) minEdge.v1 else minEdge.v2
+        // Sommet à ajouter aux sommets marqués
+        val vertex = minEdge other taggedVertex
+        // Arêtes à ajouter à e
+        val edgesToAdd =
+          (this getVertexEdges vertex) filterNot (e => v contains (e other vertex))
+        // Nouvel ensemble de sommets à considérer
+        val newV = v + vertex
+        // Nouvel ensemble d'arêtes à considérer
+        val newE =
+          (e ++ edgesToAdd) filterNot (
+            e => (newV contains e.v1) && (newV contains e.v2)
+          )
+
+        prim(newV, newE, fe + minEdge)
+      }
+
+    val vertex = this.vertices.head
+    val vertexEdges = this getVertexEdges vertex
+
+    prim(Set(vertex), vertexEdges, Set())
+  }
+```
+
+#### Algorithme de Kruskal
+
+L'arbre couvrant minimum d'un graphe généré avec l'algorithme de Kruskal s'obtient grâce à la méthode `Graph.getKruskalMST()`.
+
+```
+  /**
+   * Donne l'arbre couvrant minimum du graphe grâce à l'algorithme de Kruskal
+   *
+   * @return arbre couvrant minimum du graphe
+   */
+  def getKruskalMST: Graph = {
+    /*
+     * sets        : Ensemble des sommets du graphe, chacun associé à un identifiant
+     * edges       : arête à ajouter à l'arbre couvrant
+     * unusedEdges : arête à potentiellement ajouter à l'arbre couvrant
+     */
+    def kruskal(sets: List[(Vertex, Int)], edges: Set[Edge], unusedEdges: List[Edge]): Graph =
+      // Si toutes les arêtes ont été parcourues, le graphe peut être renvoyé
+      if (unusedEdges.isEmpty)
+        new Graph(this.vertices, edges)
+      else {
+        // Fonction qui trouve l'identifiant d'un sommet
+        def findSetOf(v: Vertex): Int = (sets filter (c => c._1 == v)).head._2
+        // Arête à considérer pour cette itération
+        val edge = unusedEdges.head
+        // Extrémités de l'arête à considérer
+        val (v1, v2) = (edge.v1, edge.v2)
+        // Identifiants des extrémités
+        val (i1, i2) = (findSetOf(v1), findSetOf(v2))
+
+        // Si les identifiants sont différents, on peut ajouter l'arête (pas de cycle)
+        if (i1 != i2) {
+          /*
+           * Les identifiants sont mis à jours :
+           * Tous les sommets qui avaient l'identifiant i2 ont maintenant
+           * l'identifiant i1
+           */
+          val newSets = sets map (c => if (c._2 == i2) (c._1, i1) else c)
+          kruskal(newSets, edges + edge, unusedEdges.tail)
+        }
+        // Sinon, ajouter l'arête créerait un cycle, elle n'est pas ajoutée
+        else
+          kruskal(sets, edges, unusedEdges.tail)
+      }
+
+    // Chaque sommet possède son propre identifiant
+    val initSets = (this.vertices zip (1 to this.vertices.size)).toList
+    val orderedEdges = this.edges.toList sortWith ((e1, e2) => e1.weight < e2.weight)
+
+    kruskal(initSets, Set(), orderedEdges)
+  }
+```
+
+Main
 ----
-tuer  muer  muet  guet  suer  suez  tuez  reer  beer  reel  lier
-lied  sied  sien  tien  bien  rien  riez  pied  pieu  lieu  dieu
-pneu  nier  fuel  duel  quel  full  pull  ciel  pion  paon  pain
-vain  vais  mais  hais  haie  hait  haut  vaut  vaux  veux  veuf
-oeuf  neuf  nerf  cerf  cern  serf  self  sera  aera  aere  here
-hele  tele  fele  fela  hela  dela  deja  deca  decu  vecu  veau
-venu  tenu  tetu  fetu  feru  fera  fora  fort  font  foot  flot
-flou  clou  clot  clos  ilot  plot  plut  peut  veut  vent  vend
-pend  perd  pere  gere  gene  cene  cane  cade  cage  cake  cafe
-came  camp  vamp  lame  lama  pama  puma  papa  sapa  saga  sage
-sake  sape  pape  page  pane  pale  hale  hall  halo  haro  hase
-vase  jase  jade  jude  rude  rode  roda  soda  sofa  soya  soja
-role  mole  mile  mike  mise  miss  mess  mens  cens  cent  sent
-sens  sans  sais  jais  jars  gars  pars  paru  parc  pari  sari
-sali  soli  joli  poli  polo  solo  silo  kilo  kilt  tilt  tint
-vint  vont  mont  mort  mord  mors  tors  tort  toit  tout  aout
-cout  coit  voit  vois  voir  voix  voie  vote  hote  hate  hata
-gata  gala  gale  gate  gite  mite  mita  mica  vite  vice  vise
-aise  aire  aine  aile  aide  bile  bale  base  buse  bure  buee
-nuee  dure  dune  hune  aune  aube  auge  ange  anse  ansi  luge
-luxe  lune  luxa  cube  jube  jupe  jute  fute  cure  mure  mule
-muse  musc  male  rale  race  rame  pame  pate  rate  rare  rave
-have  mare  mari  marc  mark  mars  mans  mage  tare  taie  trie
-tria  trio  brio  bric  eric  cric  chic  choc  chou  croc  froc
-frac  frai  vrai  vrac  trac  tram  troc  trot  trop  drop  drap
-trou  brou  broc  bloc  truc  irai  crin  coin  foin  loin  loir
-soir  soif  soin  sain  sait  lait  laid  caid  raid  rail  bail
-bain  gain  nain  nais  nait  naif  nuit  fuit  frit  fret  pret
-pres  pref  bref  ores  tres  gres  gras  glas  gros  grog  greg
-grec  gris  fris  cris  cuis  buis  puis  suis  suif  juif  juin
-suit  huit  cuit  cuir  fuir  ouir  ouie  suie  skie  skia  spie
-epie  epia  epee  suce  puce  suca  suiv  luit  soit  sont  sono
-sort  sert  vert  vers  sers  sors  hors  lors  dors  dois  dais
-daim  faim  fais  fait  fart  part  kart  port  pont  pond  fond
-tond  todd  tord  nord  bord  bond  gond  gong  gang  sang  sana
-fana  fane  fame  dame  dome  tome  toge  tige  pige  pire  lire
-lice  lise  lese  lest  lent  kent  dent  deni  demi  defi  ment
-meat  beat  beau  seau  peau  meut  meus  mous  moue  mode  iode
-moud  coud  coup  corp  cour  four  tour  tous  toux  houx  houe
-home  boue  boxe  boxa  bouc  boul  soul  seul  souk  bous  vous
-nous  bois  pois  poix  paix  pair  hair  prix  pris  iris  ibis
-ibid  bris  bras  brie  brin  brun  brut  crut  chut  chat  chas
-char  chai  chah  shah  cher  chef  chez  clef  crue  drue  grue
-doue  dose  dise  bise  pise  pese  pesa  lesa  pene  rene  rend
-rond  fend  tend  pipe  pope  pore  fore  porc  pole  tole  sole
-dine  dina  dira  dura  mura  aura  lira  rira  rire  sire  site
-rite  rime  cime  dime  dire  rima  rama  rami  rata  rala  rixe
-dosa  dota  iota  dote  cote  coke  cone  conf  zone  zona  rose
-roue  roux  poux  pouf  pour  jour  joug  peur  heur  leur  doux
-                                          ----
-deux  ceux  yeux  bout  gout  mout  boit  doit  dont  donc  jonc
-dort  prit  noix  noir  poil  phil  pool  taux  baux  baud  maux
-faux  flux  faut  saut  saur  sauf  loup  menu  test  lyse  lyre
-lisp  daze  face  fade  bang  banc  rang  ring  king  gant  tant
-tact  tait  tain  taon  thon  faon  main  mail  tais  tank  long
-boni  tard  lard  land  yard  dard  fard  pers  perl  sept  surf
-turf  turc  gril  oree  orge  orme  urge  urne  uree  laic  sein
-rein  clin  clip  slip  clan  flan  plan  plat  elan  clam  cran
-aria  malt  cuba  abbe  basa  jasa  jusa  java  nasa  naja  baba
-apre  apte  opte  opta  acte  acre  atre  etre  erre  erra  ocre
-ogre  visa  vive  joie  volt  colt  cola  coma  kola  pays  gens
-gena  gera  roll  judo  cadi  cepe  elut  elit  edit  emit  omit
-omet  emet  emut  emue  elue  elle  omis  emis  elis  emir  hetu
-vetu  velu  valu  velo  veto  tete  bete  bebe  beta  recu  zele
-feue  feve  fevr  seve  seme  meme  sema  sexe  sexy  neve
+
+#### Affichage d'un graphe et de son MST
+
+Le `jar` éxécutable `GraphMST.jar` permet d'imprimer un graphe et son MST sur la sortie standard.  
+Pour tester, le fichier `graph.txt` correspond au graphe se trouvant à la fin du sujet de TP.
+
+Exemple d'utilisation :
+```
+$ java -jar GraphMST.jar graph.txt
+
+===== GRAPHE =====
+8 -- 9 (1)
+5 -- 9 (3)
+1 -- 2 (7)
+2 -- 3 (2)
+4 -- 7 (6)
+3 -- 5 (9)
+4 -- 5 (19)
+5 -- 8 (13)
+3 -- 4 (21)
+6 -- 10 (20)
+5 -- 6 (8)
+8 -- 12 (11)
+9 -- 10 (12)
+4 -- 8 (5)
+8 -- 11 (4)
+1 -- 3 (10)
+
+===== PRIM =====
+8 -- 9 (1)
+5 -- 9 (3)
+1 -- 2 (7)
+2 -- 3 (2)
+4 -- 7 (6)
+3 -- 5 (9)
+5 -- 6 (8)
+8 -- 12 (11)
+9 -- 10 (12)
+4 -- 8 (5)
+8 -- 11 (4)
+
+===== KRUSKAL =====
+8 -- 9 (1)
+5 -- 9 (3)
+1 -- 2 (7)
+2 -- 3 (2)
+4 -- 7 (6)
+3 -- 5 (9)
+5 -- 6 (8)
+8 -- 12 (11)
+9 -- 10 (12)
+4 -- 8 (5)
+8 -- 11 (4)
 ```
 
-Exercice 3 : Calculs de chemins
--------------------------------
+#### Tests de performances
 
-Pour obtenir un chemin entre deux mot, un parcours est effectué à partir du premier mot, si le second mot est rencontré lors de ce parcours, alors il existe un chemin entre ces deux mots. Pour affichier le chemin, il faut mémoriser tous les mots rencontrés lors du parcours.
+Le `jar` éxécutable `TestPerfMST.jar` permet de tester les deux algorithmes sur un panel de graphe généré aléatoirement.  
+Pour s'assurer du bon fonctionnement de l'algorithme de Prim, il est conseillé de demander des graphes composés d'au moins 100 sommets.
 
-Le chemin suivant a été obtenu grâce à la méthode `Graphe.cheminDfs(m1, m2)` qui effectue un parcours en profondeur d'abord et imprime le chemin entre les mots `m1` et `m2` s'il existe.
-
-#### Chemin entre les mots _lion_ et _peur_
-
+Exemple d'utilisation pour 50 graphes de 100 sommets (pour chaque probabilité, 50 graphes à 100 arêtes sont générés) :
 ```
-lion -> pion -> paon -> pain -> vain -> vais -> mais -> hais -> haie -> hait ->
-haut -> vaut -> vaux -> veux -> veuf -> oeuf -> neuf -> nerf -> cerf -> serf ->
-sera -> aera -> aere -> here -> hele -> tele -> fele -> fela -> hela -> dela ->
-deja -> deca -> decu -> vecu -> veau -> venu -> tenu -> tetu -> fetu -> feru ->
-fera -> fora -> fort -> font -> foot -> flot -> flou -> clou -> clot -> ilot ->
-plot -> plut -> peut -> veut -> vent -> vend -> pend -> perd -> pere -> gere ->
-gene -> cene -> cane -> cade -> cage -> cake -> cafe -> came -> lame -> lama ->
-pama -> papa -> sapa -> saga -> sage -> sake -> sape -> pape -> page -> pane ->
-pale -> hale -> hase -> vase -> jase -> jade -> jude -> rude -> rode -> role ->
-mole -> mile -> mike -> mise -> miss -> mess -> mens -> cens -> cent -> sent ->
-sens -> sans -> sais -> jais -> jars -> gars -> pars -> paru -> parc -> pari ->
-sari -> sali -> soli -> joli -> poli -> polo -> solo -> silo -> kilo -> kilt ->
-tilt -> tint -> vint -> vont -> mont -> mort -> mord -> mors -> tors -> tort ->
-toit -> tout -> aout -> cout -> coit -> voit -> vois -> voir -> voix -> voie ->
-vote -> hote -> hate -> hata -> gata -> gala -> gale -> gate -> gite -> mite ->
-vite -> vice -> vise -> aise -> aire -> aine -> aile -> bile -> bale -> base ->
-buse -> bure -> dure -> dune -> hune -> aune -> aube -> cube -> cure -> mure ->
-mule -> male -> rale -> race -> rame -> pame -> pate -> rate -> rare -> mare ->
-tare -> taie -> trie -> tria -> trio -> brio -> bric -> eric -> cric -> crin ->
-coin -> foin -> loin -> loir -> soir -> soif -> soin -> sain -> sait -> lait ->
-laid -> caid -> raid -> rail -> bail -> bain -> gain -> nain -> nais -> nait ->
-nuit -> fuit -> frit -> fret -> pret -> pres -> ores -> tres -> gres -> gras ->
-gros -> gris -> fris -> cris -> cuis -> buis -> puis -> suis -> suif -> suit ->
-soit -> sont -> sort -> sert -> vert -> vers -> sers -> sors -> hors -> lors ->
-dors -> dois -> dais -> daim -> faim -> fais -> fait -> fart -> part -> port ->
-pont -> pond -> fond -> tond -> todd -> tord -> nord -> bord -> bond -> gond ->
-gong -> gang -> sang -> sana -> fana -> fane -> fame -> dame -> dome -> tome ->
-toge -> tige -> pige -> pire -> lire -> lice -> lise -> lese -> lest -> lent ->
-kent -> dent -> ment -> meat -> meut -> meus -> mous -> moue -> moud -> coud ->
-coup -> cour -> four -> tour -> tous -> toux -> houx -> houe -> boue -> bouc ->
-boul -> bous -> bois -> pois -> poix -> paix -> prix -> pris -> iris -> bris ->
-brie -> brin -> brun -> brut -> crut -> crue -> drue -> doue -> dose -> rose ->
-roue -> roux -> poux -> pouf -> pour -> peur
+$java -jar TestPerfMST.jar 50 100
+
+===== PROBA : 0.1 =====
+----- PRIM -----
+Temps moyen : 6 ms
+----- KRUSKAL -----
+Temps moyen : 3 ms
+
+===== PROBA : 0.3 =====
+----- PRIM -----
+Temps moyen : 12 ms
+----- KRUSKAL -----
+Temps moyen : 2 ms
+
+===== PROBA : 0.5 =====
+----- PRIM -----
+Temps moyen : 22 ms
+----- KRUSKAL -----
+Temps moyen : 4 ms
+
+===== PROBA : 0.7 =====
+----- PRIM -----
+Temps moyen : 37 ms
+----- KRUSKAL -----
+Temps moyen : 6 ms
+
+===== PROBA : 0.9 =====
+----- PRIM -----
+Temps moyen : 41 ms
+----- KRUSKAL -----
+Temps moyen : 7 ms
 ```
 
-## Exercice 4
+On remarque de l'algorithme de Kruskal est toujours plus efficace. Cela est sûrement dû à l'optimisation apporté à l'implémentation pour la détéction des cycles : chaque sommet est dans un groupe lors de l'éxécution de l'algorithme, si une arête sélectionnée lie deux sommets du même groupe, un cycle est détecté.
 
-#### Chemin entre les mots _lion_ et _peur_
-
-Le chemin suivant a été obtenu grâce à la méthode `Graphe.cheminBfs(m1, m2)` qui effectue un parcours en largeur d'abord et imprime le chemin entre les mots `m1` et `m2` s'il existe.
-
-Le chemin obtenue entre deux mots à partir d'un parcours en largeur d'abord est aussi appelé __chemin le plus court__.
-
+Test sur un graphe de taille 1000 :
 ```
-lion -> pion -> paon -> pain -> pair -> paix -> poix -> poux -> pouf -> pour ->
-peur
+$java -jar TestPerfMST.jar 1 1000
+
+===== PROBA : 0.1 =====
+----- PRIM -----
+Temps moyen : 7797 ms
+----- KRUSKAL -----
+Temps moyen : 1450 ms
+
+===== PROBA : 0.3 =====
+----- PRIM -----
+Temps moyen : 31620 ms
+----- KRUSKAL -----
+Temps moyen : 3430 ms
+
+===== PROBA : 0.5 =====
+----- PRIM -----
+Temps moyen : 63924 ms
+----- KRUSKAL -----
+Temps moyen : 5938 ms
+
+===== PROBA : 0.7 =====
+----- PRIM -----
+Temps moyen : 90302 ms
+----- KRUSKAL -----
+Temps moyen : 8493 ms
+
+===== PROBA : 0.9 =====
+----- PRIM -----
+Temps moyen : 136272 ms
+----- KRUSKAL -----
+Temps moyen : 11725 ms
 ```
+
+Même sur un plus gros exemple, l'algorithme de Kruskal reste largement (de l'ordre de 10 fois) plus performant.
