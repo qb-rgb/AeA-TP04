@@ -101,10 +101,10 @@ class Graph(val vertices: Set[Vertex], val edges: Set[Edge]) {
     /*
      * v  : Ensemble des points marqués
      * e  : Ensemble des arêtes sortante de l'ensemble de points marqués
-     * fr : Ensemble des arêtes à garder pour l'arbre couvrant minimum
+     * fe : Ensemble des arêtes à garder pour l'arbre couvrant minimum
      */
     def prim(v: Set[Vertex], e: Set[Edge], fe: Set[Edge]): Graph =
-      if (this.vertices forall (v contains _))
+      if (this.vertices forall v.contains)
         new Graph(v, fe)
       else {
         // Arête avec le poids minimum
@@ -116,10 +116,15 @@ class Graph(val vertices: Set[Vertex], val edges: Set[Edge]) {
         // Arêtes à ajouter à e
         val edgesToAdd =
           (this getVertexEdges vertex) filterNot (e => v contains (e other vertex))
+        // Nouvel ensemble de sommets à considérer
+        val newV = v + vertex
         // Nouvel ensemble d'arêtes à considérer
-        val newE = (e - minEdge) ++ edgesToAdd
+        val newE =
+          (e ++ edgesToAdd) filterNot (
+            e => (newV contains e.v1) && (newV contains e.v2)
+          )
 
-        prim(v + vertex, newE, fe + minEdge)
+        prim(newV, newE, fe + minEdge)
       }
 
     val vertex = this.vertices.head
